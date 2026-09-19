@@ -172,6 +172,46 @@
       margin-top: 12px;
     }
 
+    /* BOTÓN NO */
+    .question-buttons {
+      position: relative;
+      min-height: 125px;
+      margin-top: 24px;
+    }
+
+    .question-buttons .primary,
+    .question-buttons .no-button {
+      position: absolute;
+      width: calc(50% - 6px);
+      top: 0;
+    }
+
+    .question-buttons .primary {
+      left: 0;
+    }
+
+    .no-button {
+      right: 0;
+      background: rgba(255, 255, 255, 0.8);
+      color: #a13f68;
+      border: 1px solid #f0bfd2;
+      z-index: 20;
+      transition:
+        left 0.25s ease,
+        top 0.25s ease,
+        opacity 0.35s ease,
+        transform 0.2s ease;
+    }
+
+    .no-button:hover {
+      transform: translateY(-2px);
+    }
+
+    .no-button.fading {
+      opacity: 0;
+      pointer-events: none;
+    }
+
     input,
     textarea {
       width: 100%;
@@ -444,10 +484,6 @@
       }
     }
 
-    .success h2 {
-      margin-bottom: 8px;
-    }
-
     @media (max-width: 600px) {
       .app {
         padding: 14px;
@@ -468,6 +504,25 @@
 
       .wheel-container {
         width: min(320px, 82vw);
+      }
+
+      .question-buttons {
+        min-height: 185px;
+      }
+
+      .question-buttons .primary,
+      .question-buttons .no-button {
+        width: 100%;
+        left: 0;
+        right: auto;
+      }
+
+      .question-buttons .primary {
+        top: 0;
+      }
+
+      .question-buttons .no-button {
+        top: 62px;
       }
     }
   </style>
@@ -520,10 +575,24 @@
       y prometo que no es una trampa JAJA.
     </p>
 
-    <div class="buttons">
-      <button class="primary" onclick="showScreen('s2')">
+    <div class="question-buttons" id="questionButtons">
+
+      <button
+        class="primary"
+        onclick="showScreen('s2')"
+      >
         Sí 💗
       </button>
+
+      <button
+        class="no-button"
+        id="noButton"
+        type="button"
+        onclick="handleNoClick()"
+      >
+        No 😭
+      </button>
+
     </div>
   </section>
 
@@ -852,19 +921,103 @@
     let wheelRotation = 0;
     let spinning = false;
 
+    /* BOTÓN NO */
+    let noAttempts = 0;
+
+    function handleNoClick() {
+      const noButton =
+        document.getElementById("noButton");
+
+      if (!noButton) return;
+
+      noAttempts++;
+
+      if (noAttempts >= 5) {
+        noButton.classList.add("fading");
+
+        setTimeout(() => {
+          noButton.style.display = "none";
+        }, 350);
+
+        return;
+      }
+
+      moveNoButton();
+    }
+
+    function moveNoButton() {
+      const noButton =
+        document.getElementById("noButton");
+
+      const container =
+        document.getElementById("questionButtons");
+
+      if (!noButton || !container) return;
+
+      const maxX =
+        Math.max(
+          0,
+          container.clientWidth -
+          noButton.offsetWidth
+        );
+
+      const maxY =
+        Math.max(
+          0,
+          container.clientHeight -
+          noButton.offsetHeight
+        );
+
+      const newX =
+        Math.random() * maxX;
+
+      const newY =
+        Math.random() * maxY;
+
+      noButton.style.left =
+        `${newX}px`;
+
+      noButton.style.top =
+        `${newY}px`;
+
+      noButton.style.right =
+        "auto";
+    }
+
     function showScreen(id) {
       document
         .querySelectorAll(".screen")
-        .forEach(screen => screen.classList.remove("active"));
+        .forEach(screen =>
+          screen.classList.remove("active")
+        );
 
       document
         .getElementById(id)
         .classList.add("active");
 
+      if (id === "s1") {
+        resetNoButton();
+      }
+
       window.scrollTo({
         top: 0,
         behavior: "smooth"
       });
+    }
+
+    function resetNoButton() {
+      const noButton =
+        document.getElementById("noButton");
+
+      if (!noButton) return;
+
+      noAttempts = 0;
+
+      noButton.classList.remove("fading");
+      noButton.style.display = "block";
+      noButton.style.left = "";
+      noButton.style.top = "";
+      noButton.style.right = "";
     }
 
     function escapeHtml(value) {
@@ -877,9 +1030,11 @@
     }
 
     function buildWheel() {
-      const wheel = document.getElementById("wheel");
+      const wheel =
+        document.getElementById("wheel");
 
-      const segment = 360 / activities.length;
+      const segment =
+        360 / activities.length;
 
       let gradient = [];
 
@@ -894,10 +1049,19 @@
         "#fbdce7"
       ];
 
-      for (let i = 0; i < activities.length; i++) {
-        const start = i * segment;
-        const end = (i + 1) * segment;
-        const color = colors[i % colors.length];
+      for (
+        let i = 0;
+        i < activities.length;
+        i++
+      ) {
+        const start =
+          i * segment;
+
+        const end =
+          (i + 1) * segment;
+
+        const color =
+          colors[i % colors.length];
 
         gradient.push(
           `${color} ${start}deg ${end}deg`
@@ -911,15 +1075,25 @@
     function showWheel() {
       showScreen("s4");
 
-      document.getElementById("wheelResult").innerHTML = `
-        <div class="result-label">Resultado</div>
-        <div class="plan-description">
-          Gira la ruleta para descubrir el plan.
-        </div>
-      `;
+      document
+        .getElementById("wheelResult")
+        .innerHTML = `
+          <div class="result-label">
+            Resultado
+          </div>
 
-      document.getElementById("spinButton").disabled = false;
-      document.getElementById("acceptSpin").style.display = "none";
+          <div class="plan-description">
+            Gira la ruleta para descubrir el plan.
+          </div>
+        `;
+
+      document
+        .getElementById("spinButton")
+        .disabled = false;
+
+      document
+        .getElementById("acceptSpin")
+        .style.display = "none";
     }
 
     function spin() {
@@ -927,61 +1101,89 @@
 
       spinning = true;
 
-      const spinButton = document.getElementById("spinButton");
-      const acceptButton = document.getElementById("acceptSpin");
-      const wheel = document.getElementById("wheel");
+      const spinButton =
+        document.getElementById("spinButton");
+
+      const acceptButton =
+        document.getElementById("acceptSpin");
+
+      const wheel =
+        document.getElementById("wheel");
 
       spinButton.disabled = true;
-      acceptButton.style.display = "none";
+
+      acceptButton.style.display =
+        "none";
 
       const index =
-        Math.floor(Math.random() * activities.length);
+        Math.floor(
+          Math.random() *
+          activities.length
+        );
 
-      const segment = 360 / activities.length;
+      const segment =
+        360 / activities.length;
 
       const target =
         360 -
-        (index * segment + segment / 2);
+        (
+          index * segment +
+          segment / 2
+        );
 
       const extraTurns =
-        5 + Math.floor(Math.random() * 3);
+        5 +
+        Math.floor(
+          Math.random() * 3
+        );
 
       wheelRotation +=
-        extraTurns * 360 + target;
+        extraTurns * 360 +
+        target;
 
       wheel.style.transform =
         `rotate(${wheelRotation}deg)`;
 
-      document.getElementById("wheelResult").innerHTML = `
-        <div class="result-label">
-          🎲 Girando...
-        </div>
+      document
+        .getElementById("wheelResult")
+        .innerHTML = `
+          <div class="result-label">
+            🎲 Girando...
+          </div>
 
-        <div class="plan-description">
-          A ver qué nos toca 👀
-        </div>
-      `;
+          <div class="plan-description">
+            A ver qué nos toca 👀
+          </div>
+        `;
 
       setTimeout(() => {
 
         selectedActivity =
           activities[index];
 
-        document.getElementById("wheelResult").innerHTML = `
-          <div class="result-label">
-            🎲 La ruleta ha decidido...
-          </div>
+        document
+          .getElementById("wheelResult")
+          .innerHTML = `
+            <div class="result-label">
+              🎲 La ruleta ha decidido...
+            </div>
 
-          <div class="plan-title">
-            ${escapeHtml(selectedActivity.nombre)}
-          </div>
+            <div class="plan-title">
+              ${escapeHtml(
+                selectedActivity.nombre
+              )}
+            </div>
 
-          <div class="plan-description">
-            ${escapeHtml(selectedActivity.descripcion)}
-          </div>
-        `;
+            <div class="plan-description">
+              ${escapeHtml(
+                selectedActivity.descripcion
+              )}
+            </div>
+          `;
 
-        acceptButton.style.display = "block";
+        acceptButton.style.display =
+          "block";
+
         spinButton.disabled = false;
         spinning = false;
 
@@ -1008,14 +1210,19 @@
         input.value.trim();
 
       if (!value) {
-        alert("Cuéntame qué quieres hacer 💗");
+        alert(
+          "Cuéntame qué quieres hacer 💗"
+        );
+
         input.focus();
+
         return;
       }
 
       selectedActivity = {
         nombre: "✍️ " + value,
-        descripcion: "Idea propuesta por Carolina."
+        descripcion:
+          "Idea propuesta por Carolina."
       };
 
       document.getElementById("date").value = "";
@@ -1034,12 +1241,14 @@
         now.getFullYear();
 
       const month =
-        String(now.getMonth() + 1)
-          .padStart(2, "0");
+        String(
+          now.getMonth() + 1
+        ).padStart(2, "0");
 
       const day =
-        String(now.getDate())
-          .padStart(2, "0");
+        String(
+          now.getDate()
+        ).padStart(2, "0");
 
       return `${year}-${month}-${day}`;
     }
@@ -1048,12 +1257,14 @@
       const now = new Date();
 
       const hours =
-        String(now.getHours())
-          .padStart(2, "0");
+        String(
+          now.getHours()
+        ).padStart(2, "0");
 
       const minutes =
-        String(now.getMinutes())
-          .padStart(2, "0");
+        String(
+          now.getMinutes()
+        ).padStart(2, "0");
 
       return `${hours}:${minutes}`;
     }
@@ -1068,7 +1279,8 @@
       const hint =
         document.getElementById("timeHint");
 
-      if (!dateInput || !timeInput) return;
+      if (!dateInput || !timeInput)
+        return;
 
       const today =
         getTodayString();
@@ -1089,7 +1301,8 @@
 
         if (
           timeInput.value &&
-          timeInput.value < minimumTime
+          timeInput.value <
+          minimumTime
         ) {
           timeInput.value = "";
         }
@@ -1110,7 +1323,8 @@
       const timeInput =
         document.getElementById("time");
 
-      if (!dateInput || !timeInput) return;
+      if (!dateInput || !timeInput)
+        return;
 
       dateInput.min =
         getTodayString();
@@ -1145,14 +1359,22 @@
         getTodayString();
 
       if (!date) {
-        alert("Escoge una fecha para la cita 💗");
+        alert(
+          "Escoge una fecha para la cita 💗"
+        );
+
         dateInput.focus();
+
         return false;
       }
 
       if (!time) {
-        alert("Escoge una hora para la cita 🕐");
+        alert(
+          "Escoge una hora para la cita 🕐"
+        );
+
         timeInput.focus();
+
         return false;
       }
 
@@ -1186,7 +1408,9 @@
 
     function formatDate(dateString) {
       const date =
-        new Date(`${dateString}T12:00:00`);
+        new Date(
+          `${dateString}T12:00:00`
+        );
 
       return date.toLocaleDateString(
         "es-CO",
@@ -1201,8 +1425,12 @@
 
     function review() {
       if (!selectedActivity) {
-        alert("Primero debemos escoger un plan 💗");
+        alert(
+          "Primero debemos escoger un plan 💗"
+        );
+
         showScreen("s2");
+
         return;
       }
 
@@ -1217,7 +1445,10 @@
         document.getElementById("time").value;
 
       const extra =
-        document.getElementById("extra").value.trim();
+        document
+          .getElementById("extra")
+          .value
+          .trim();
 
       document.getElementById(
         "summaryActivity"
@@ -1237,7 +1468,8 @@
       document.getElementById(
         "summaryExtra"
       ).textContent =
-        extra || "Nada más por ahora 💗";
+        extra ||
+        "Nada más por ahora 💗";
 
       showScreen("s6");
     }
@@ -1245,9 +1477,12 @@
     async function sendResult() {
 
       const button =
-        document.getElementById("sendButton");
+        document.getElementById(
+          "sendButton"
+        );
 
       button.disabled = true;
+
       button.textContent =
         "Enviando... 💌";
 
@@ -1258,14 +1493,20 @@
         document.getElementById("time").value;
 
       const extra =
-        document.getElementById("extra").value.trim();
+        document
+          .getElementById("extra")
+          .value
+          .trim();
 
       const payload = {
         respuesta: "Sí 💗",
 
         actividad: {
-          nombre: selectedActivity.nombre,
-          descripcion: selectedActivity.descripcion
+          nombre:
+            selectedActivity.nombre,
+
+          descripcion:
+            selectedActivity.descripcion
         },
 
         fecha: date,
@@ -1315,6 +1556,7 @@
         );
 
         button.disabled = false;
+
         button.textContent =
           "Confirmar cita 💗";
       }
@@ -1322,7 +1564,9 @@
 
     function makeHearts() {
       const container =
-        document.getElementById("hearts");
+        document.getElementById(
+          "hearts"
+        );
 
       const symbols = [
         "💗",
@@ -1332,10 +1576,16 @@
         "♥"
       ];
 
-      for (let i = 0; i < 18; i++) {
+      for (
+        let i = 0;
+        i < 18;
+        i++
+      ) {
 
         const heart =
-          document.createElement("div");
+          document.createElement(
+            "div"
+          );
 
         heart.className =
           "heart";
@@ -1360,7 +1610,9 @@
         heart.style.fontSize =
           `${14 + Math.random() * 16}px`;
 
-        container.appendChild(heart);
+        container.appendChild(
+          heart
+        );
       }
     }
 
@@ -1376,8 +1628,12 @@
         setTimeout(() => {
 
           document
-            .getElementById("loadingScreen")
-            .classList.add("hidden");
+            .getElementById(
+              "loadingScreen"
+            )
+            .classList.add(
+              "hidden"
+            );
 
         }, 700);
       }
