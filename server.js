@@ -9,7 +9,52 @@ const PORT = process.env.PORT || 3000;
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
+// Alias según país detectado
+const aliases = {
+  CL: "Leti",
+  TC: "Mafe",
+  CO: "Carolina"
+};
 
+// Detectar ubicación aproximada por IP
+async function getVisitorLocation(req) {
+  try {
+    const forwardedFor = req.headers["x-forwarded-for"];
+    const ip = forwardedFor
+      ? forwardedFor.split(",")[0].trim()
+      : req.socket.remoteAddress;
+
+    if (!ip) {
+      return {
+        countryCode: null,
+        countryName: "Ubicación desconocida",
+        city: null
+      };
+    }
+
+    const response = await fetch(`https://ipapi.co/${ip}/json/`);
+
+    if (!response.ok) {
+      throw new Error(`ipapi respondió ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    return {
+      countryCode: data.country_code || null,
+      countryName: data.country_name || "País desconocido",
+      city: data.city || null
+    };
+  } catch (error) {
+    console.error("No se pudo detectar ubicación:", error);
+
+    return {
+      countryCode: null,
+      countryName: "Ubicación desconocida",
+      city: null
+    };
+  }
+}
 // ==========================================
 // CONFIGURACIÓN
 // ==========================================
@@ -52,6 +97,16 @@ app.post("/api/cita", async (req, res) => {
 
 
         // ------------------------------------------
+        // DETECTAR VISITANTE
+        // ------------------------------------------
+
+        const visitor = await getVisitorLocation(req);
+
+        const alias =
+            (visitor.countryCode && aliases[visitor.countryCode]) ||
+            `🌎 Visitante de ${visitor.countryName}`;
+
+        // ------------------------------------------
         // COMPROBAR CONFIGURACIÓN
         // ------------------------------------------
 
@@ -89,31 +144,37 @@ app.post("/api/cita", async (req, res) => {
         // CREAR MENSAJE PARA TELEGRAM
         // ------------------------------------------
 
-        const text = [
+       const text = [
 
-            "💌 NUEVA CITA HMT",
+    "💌 NUEVA CITA HMT",
 
-            "",
+    "",
 
-            `💗 Respuesta: ${respuesta || "Sí 💗"}`,
+    `👀 Posible visitante: ${alias}`,
 
-            "",
+    `🌎 Ubicación aproximada: ${visitor.countryName}${visitor.city ? `, ${visitor.city}` : ""}`,
 
-            `🎯 Plan: ${actividad.nombre}`,
+    "",
 
-            `📝 ${actividad.descripcion}`,
+    `💗 Respuesta: ${respuesta || "Sí 💗"}`,
 
-            "",
+    "",
 
-            `📅 Fecha: ${prettyDate}`,
+    `🎯 Plan: ${actividad.nombre}`,
 
-            `🕐 Hora: ${hora || "No especificada"}`,
+    `📝 ${actividad.descripcion}`,
 
-            "",
+    "",
 
-            `💭 Mensaje: ${mensaje || "Nada más por ahora"}`
+    `📅 Fecha: ${prettyDate}`,
 
-        ].join("\n");
+    `🕐 Hora: ${hora || "No especificada"}`,
+
+    "",
+
+    `💭 Mensaje: ${mensaje || "Nada más por ahora"}`
+
+].join("\n");
 
 
         // ------------------------------------------
