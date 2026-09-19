@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HMT 💗</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top left, #ffd9e8 0%, transparent 35%),
+        radial-gradient(circle at bottom right, #f6c8dc 0%, transparent 35%),
+        linear-gradient(135deg, #fff5f9, #ffeaf2);
+      color: #4a2635;
+      overflow-x: hidden;
+    }
+
+    .hearts {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .heart {
+      position: absolute;
+      bottom: -40px;
+      font-size: 20px;
+      opacity: 0.45;
+      animation: floatHeart linear infinite;
+    }
+
+    @keyframes floatHeart {
+      from {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0;
+      }
+
+      15% {
+        opacity: 0.45;
+      }
+
+      to {
+        transform: translateY(-110vh) rotate(25deg);
+        opacity: 0;
+      }
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: min(680px, 100%);
+      background: rgba(255, 255, 255, 0.68);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 30px;
+      padding: 34px;
+      box-shadow: 0 20px 60px rgba(135, 60, 95, 0.16);
+    }
+
+    .screen {
+      display: none;
+      animation: fadeIn 0.35s ease;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h1 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: clamp(30px, 6vw, 46px);
+      line-height: 1.1;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: clamp(25px, 5vw, 34px);
+    }
+
+    p {
+      line-height: 1.6;
+      color: #704b5b;
+    }
+
+    .subtitle {
+      font-size: 17px;
+      margin-bottom: 28px;
+    }
+
+    .buttons {
+      display: grid;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    button {
+      width: 100%;
+      border: none;
+      border-radius: 16px;
+      padding: 15px 18px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .primary {
+      background: #e85d91;
+      color: white;
+      box-shadow: 0 10px 25px rgba(232, 93, 145, 0.25);
+    }
+
+    .secondary {
+      background: rgba(255, 255, 255, 0.8);
+      color: #a13f68;
+      border: 1px solid #f0bfd2;
+    }
+
+    .back {
+      background: transparent;
+      color: #a35b77;
+      padding: 10px;
+      margin-top: 12px;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid #efc5d5;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 14px;
+      padding: 14px;
+      font-size: 16px;
+      color: #4a2635;
+      outline: none;
+      font-family: inherit;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: #e85d91;
+      box-shadow: 0 0 0 3px rgba(232, 93, 145, 0.12);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 110px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 700;
+      color: #633447;
+    }
+
+    .field {
+      margin-bottom: 18px;
+    }
+
+    .hint {
+      font-size: 13px;
+      margin-top: 7px;
+      color: #906477;
+    }
+
+    /* CARGANDO */
+    .loading-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at top left, #ffd9e8 0%, transparent 40%),
+        radial-gradient(circle at bottom right, #f6c8dc 0%, transparent 40%),
+        linear-gradient(135deg, #fff5f9, #ffeaf2);
+      transition:
+        opacity 0.45s ease,
+        visibility 0.45s ease;
+    }
+
+    .loading-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .loading-card {
+      width: min(430px, 100%);
+      text-align: center;
+      padding: 30px 24px;
+      border-radius: 30px;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 20px 60px rgba(135, 60, 95, 0.16);
+    }
+
+    .loading-gif {
+      width: min(230px, 75vw);
+      max-height: 230px;
+      object-fit: contain;
+      border-radius: 20px;
+      display: block;
+      margin: 0 auto 20px;
+    }
+
+    .loading-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .loading-text {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .loading-dots {
+      margin-top: 18px;
+      font-size: 20px;
+      letter-spacing: 5px;
+      animation: dots 1.2s infinite ease-in-out;
+    }
+
+    @keyframes dots {
+      0%,
+      100% {
+        opacity: 0.35;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    /* RULETA */
+    .roulette-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 22px;
+    }
+
+    .wheel-container {
+      position: relative;
+      width: min(360px, 82vw);
+      aspect-ratio: 1;
+    }
+
+    .pointer {
+      position: absolute;
+      z-index: 5;
+      top: -7px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-top: 30px solid #a13f68;
+      filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.12));
+    }
+
+    .wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 10px solid white;
+      box-shadow:
+        0 15px 35px rgba(90, 30, 60, 0.18),
+        inset 0 0 0 2px rgba(180, 70, 110, 0.1);
+      transition: transform 4s cubic-bezier(0.12, 0.75, 0.16, 1);
+      background: conic-gradient(
+        #f6b7cd 0deg 25.714deg,
+        #f9d4e1 25.714deg 51.428deg,
+        #f3aac5 51.428deg 77.142deg,
+        #fbe1ea 77.142deg 102.856deg,
+        #ef9fbc 102.856deg 128.57deg,
+        #f8c8d9 128.57deg 154.284deg,
+        #f2aec8 154.284deg 179.998deg,
+        #fbdce7 179.998deg 205.712deg,
+        #f0a3c0 205.712deg 231.426deg,
+        #f8c2d5 231.426deg 257.14deg,
+        #efa0bd 257.14deg 282.854deg,
+        #f9d8e4 282.854deg 308.568deg,
+        #f2aec8 308.568deg 334.282deg,
+        #fbdce7 334.282deg 360deg
+      );
+    }
+
+    .wheel-center {
+      position: absolute;
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: white;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 6px 15px rgba(100, 30, 60, 0.15);
+      z-index: 3;
+    }
+
+    .wheel-result {
+      width: 100%;
+      padding: 20px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid #f1cad9;
+      text-align: center;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .result-label {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #a35b77;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .plan-title {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 7px;
+    }
+
+    .plan-description {
+      color: #704b5b;
+      line-height: 1.5;
+    }
+
+    /* RESUMEN */
+    .summary {
+      background: rgba(255, 255, 255, 0.68);
+      border: 1px solid #f0cad9;
+      border-radius: 20px;
+      padding: 20px;
+    }
+
+    .summary-item {
+      margin-bottom: 16px;
+    }
+
+    .summary-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .summary-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #a35b77;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .summary-value {
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    /* ÉXITO */
+    .success {
+      text-align: center;
+    }
+
+    .success-icon {
+      font-size: 64px;
+      margin-bottom: 10px;
+      animation: heartbeat 1.4s infinite;
+    }
+
+    @keyframes heartbeat {
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.12);
+      }
+    }
+
+    .success h2 {
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 600px) {
+      .app {
+        padding: 14px;
+      }
+
+      .card {
+        padding: 24px 18px;
+        border-radius: 24px;
+      }
+
+      .loading-card {
+        padding: 24px 18px;
+      }
+
+      .loading-gif {
+        width: min(210px, 70vw);
+      }
+
+      .wheel-container {
+        width: min(320px, 82vw);
+      }
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <!-- PANTALLA DE CARGA -->
+
+  <div id="loadingScreen" class="loading-screen">
+    <div class="loading-card">
+
+```
+  <img
+    src="/gatitos.gif"
+    alt="Dos gatitos besándose"
+    class="loading-gif"
+  >
+
+  <div class="loading-title">
+    Preparando algo bonito... 💗
+  </div>
+
+  <p class="loading-text">
+    Un momentico, estamos acomodando todo para ti 🐱
+  </p>
+
+  <div class="loading-dots">
+    • • •
+  </div>
+
+</div>
+```
+
+  </div>
+
+  <div class="hearts" id="hearts"></div>
+
+  <main class="app">
+    <div class="card">
+
+```
+  <!-- S1 -->
+  <section class="screen active" id="s1">
+    <h1>¿Quieres salir conmigo? 💗</h1>
+
+    <p class="subtitle">
+      Tengo una pequeña propuesta para ti...
+      y prometo que no es una trampa JAJA.
+    </p>
+
+    <div class="buttons">
+      <button class="primary" onclick="showScreen('s2')">
+        Sí 💗
+      </button>
+    </div>
+  </section>
+
+  <!-- S2 -->
+  <section class="screen" id="s2">
+    <h2>¿Qué te gustaría hacer? 👀</h2>
+
+    <p>
+      Puedes decirme exactamente qué quieres hacer,
+      o dejar que el destino decida por nosotros.
+    </p>
+
+    <div class="buttons">
+      <button class="primary" onclick="showScreen('s3')">
+        ✍️ Tengo una idea
+      </button>
+
+      <button class="secondary" onclick="showWheel()">
+        🎲 No sé, sorpréndeme
+      </button>
+
+      <button class="back" onclick="showScreen('s1')">
+        ← Volver
+      </button>
+    </div>
+  </section>
+
+  <!-- S3 -->
+  <section class="screen" id="s3">
+    <h2>Entonces dime tu idea 💭</h2>
+
+    <div class="field">
+      <label for="idea">
+        ¿Qué hacemos?
+      </label>
+
+      <input
+        id="idea"
+        type="text"
+        maxlength="120"
+        placeholder="Ej. Ir a comer algo rico..."
+      >
+    </div>
+
+    <div class="buttons">
+      <button class="primary" onclick="saveIdea()">
+        Continuar 💗
+      </button>
+
+      <button class="back" onclick="showScreen('s2')">
+        ← Volver
+      </button>
+    </div>
+  </section>
+
+  <!-- S4 -->
+  <section class="screen" id="s4">
+    <h2>Entonces que decida la suerte 🎲</h2>
+
+    <p>
+      Gira la ruleta y descubramos qué vamos a hacer.
+    </p>
+
+    <div class="roulette-wrapper">
+
+      <div class="wheel-container">
+        <div class="pointer"></div>
+
+        <div
+          class="wheel"
+          id="wheel"
+        ></div>
+
+        <div class="wheel-center">
+          💗
+        </div>
+      </div>
+
+      <div class="wheel-result" id="wheelResult">
+        <div class="result-label">
+          Resultado
+        </div>
+
+        <div class="plan-description">
+          Gira la ruleta para descubrir el plan.
+        </div>
+      </div>
+
+      <button
+        class="primary"
+        id="spinButton"
+        onclick="spin()"
+      >
+        🎲 Girar ruleta
+      </button>
+
+      <button
+        class="secondary"
+        id="acceptSpin"
+        onclick="acceptSpin()"
+        style="display: none;"
+      >
+        Me gusta este plan 💗
+      </button>
+
+      <button
+        class="back"
+        onclick="showScreen('s2')"
+      >
+        ← Volver
+      </button>
+
+    </div>
+  </section>
+
+  <!-- S5 -->
+  <section class="screen" id="s5">
+    <h2>Ahora organicemos la cita 🗓️</h2>
+
+    <div class="field">
+      <label for="date">
+        Fecha
+      </label>
+
+      <input
+        id="date"
+        type="date"
+      >
+    </div>
+
+    <div class="field">
+      <label for="time">
+        Hora
+      </label>
+
+      <input
+        id="time"
+        type="time"
+      >
+
+      <div class="hint" id="timeHint"></div>
+    </div>
+
+    <div class="field">
+      <label for="extra">
+        ¿Quieres decirme algo más? 💭
+      </label>
+
+      <textarea
+        id="extra"
+        maxlength="500"
+        placeholder="Algo que quieras agregar... (opcional)"
+      ></textarea>
+    </div>
+
+    <div class="buttons">
+      <button class="primary" onclick="review()">
+        Revisar cita 💌
+      </button>
+
+      <button class="back" onclick="showScreen('s2')">
+        ← Volver
+      </button>
+    </div>
+  </section>
+
+  <!-- S6 -->
+  <section class="screen" id="s6">
+    <h2>¿Entonces tenemos trato? 💗</h2>
+
+    <div class="summary">
+
+      <div class="summary-item">
+        <div class="summary-label">
+          Plan
+        </div>
+
+        <div
+          class="summary-value"
+          id="summaryActivity"
+        ></div>
+      </div>
+
+      <div class="summary-item">
+        <div class="summary-label">
+          Fecha
+        </div>
+
+        <div
+          class="summary-value"
+          id="summaryDate"
+        ></div>
+      </div>
+
+      <div class="summary-item">
+        <div class="summary-label">
+          Hora
+        </div>
+
+        <div
+          class="summary-value"
+          id="summaryTime"
+        ></div>
+      </div>
+
+      <div class="summary-item">
+        <div class="summary-label">
+          Mensaje
+        </div>
+
+        <div
+          class="summary-value"
+          id="summaryExtra"
+        ></div>
+      </div>
+
+    </div>
+
+    <div class="buttons">
+      <button
+        class="primary"
+        id="sendButton"
+        onclick="sendResult()"
+      >
+        Confirmar cita 💗
+      </button>
+
+      <button
+        class="back"
+        onclick="showScreen('s5')"
+      >
+        ← Cambiar algo
+      </button>
+    </div>
+  </section>
+
+  <!-- S7 -->
+  <section class="screen success" id="s7">
+
+    <div class="success-icon">
+      💌
+    </div>
+
+    <h2>
+      ¡Cita confirmada! 💗
+    </h2>
+
+    <p>
+      Listo. Ya quedó todo enviado.
+      Ahora solo falta que llegue el día 🥹
+    </p>
+
+    <p>
+      Nos vemos pronto. 🫶
+    </p>
+
+  </section>
+
+</div>
+```
+
+  </main>
+
+  <script>
+
+    const activities = [
+      {
+        nombre: "🍕 Ir a comer",
+        descripcion: "Salir a comer pizza y pasar un rato juntos."
+      },
+      {
+        nombre: "🍦 Salir a caminar",
+        descripcion: "Salir por un helado y dar una vuelta."
+      },
+      {
+        nombre: "☕ Tomar café",
+        descripcion: "Ir por un café y hablar tranquilamente."
+      },
+      {
+        nombre: "🎬 Ver una película",
+        descripcion: "Escoger una película y verla juntos."
+      },
+      {
+        nombre: "🌚 Ir a motelear",
+        descripcion: "es broma, pero si quieres no es broma."
+      },
+      {
+        nombre: "🍣 Ir por sushi",
+        descripcion: "salir a comer comida oriental en general."
+      },
+      {
+        nombre: "🍺 Ir por una cerveza",
+        descripcion: "salir a algun lado y tomar algo tranquilos."
+      },
+      {
+        nombre: "🌅 Ver el atardecer",
+        descripcion: "Buscar un buen lugar y ver juntos el atardecer."
+      },
+      {
+        nombre: "📸 Salir a tomar fotos",
+        descripcion: "Salir a conocer lugares y tomar fotos juntos."
+      },
+      {
+        nombre: "👨‍🍳 Cocinar algo juntos",
+        descripcion: "buscar una receta por internet e intentar no dar pena haciendola JAJA."
+      },
+      {
+        nombre: "💦 Ir a las cascadas",
+        descripcion: "caminar hasta las cascadas y pasar un rato nadando."
+      },
+      {
+        nombre: "💸 Nos abrimos canal de onlyfans y hacemos plata",
+        descripcion: "aca ya se me acababa la imaginación xD."
+      },
+      {
+        nombre: "💆 Masaje relajante",
+        descripcion: "masaje relajante para que puedas descansar bien."
+      },
+      {
+        nombre: "🎰 Ir a un casino",
+        descripcion: "nos vamos a apostar todo al rojo y a ganar plata para comprarnos una casa, o perder los ahorros jadksjkasdj."
+      }
+    ];
+
+    let selectedActivity = null;
+    let wheelRotation = 0;
+    let spinning = false;
+
+    function showScreen(id) {
+      document
+        .querySelectorAll(".screen")
+        .forEach(screen => screen.classList.remove("active"));
+
+      document
+        .getElementById(id)
+        .classList.add("active");
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function buildWheel() {
+      const wheel = document.getElementById("wheel");
+
+      const segment = 360 / activities.length;
+
+      let gradient = [];
+
+      const colors = [
+        "#f6b7cd",
+        "#f9d4e1",
+        "#f3aac5",
+        "#fbe1ea",
+        "#ef9fbc",
+        "#f8c8d9",
+        "#f2aec8",
+        "#fbdce7"
+      ];
+
+      for (let i = 0; i < activities.length; i++) {
+        const start = i * segment;
+        const end = (i + 1) * segment;
+        const color = colors[i % colors.length];
+
+        gradient.push(
+          `${color} ${start}deg ${end}deg`
+        );
+      }
+
+      wheel.style.background =
+        `conic-gradient(${gradient.join(", ")})`;
+    }
+
+    function showWheel() {
+      showScreen("s4");
+
+      document.getElementById("wheelResult").innerHTML = `
+        <div class="result-label">Resultado</div>
+        <div class="plan-description">
+          Gira la ruleta para descubrir el plan.
+        </div>
+      `;
+
+      document.getElementById("spinButton").disabled = false;
+      document.getElementById("acceptSpin").style.display = "none";
+    }
+
+    function spin() {
+      if (spinning) return;
+
+      spinning = true;
+
+      const spinButton = document.getElementById("spinButton");
+      const acceptButton = document.getElementById("acceptSpin");
+      const wheel = document.getElementById("wheel");
+
+      spinButton.disabled = true;
+      acceptButton.style.display = "none";
+
+      const index =
+        Math.floor(Math.random() * activities.length);
+
+      const segment = 360 / activities.length;
+
+      const target =
+        360 -
+        (index * segment + segment / 2);
+
+      const extraTurns =
+        5 + Math.floor(Math.random() * 3);
+
+      wheelRotation +=
+        extraTurns * 360 + target;
+
+      wheel.style.transform =
+        `rotate(${wheelRotation}deg)`;
+
+      document.getElementById("wheelResult").innerHTML = `
+        <div class="result-label">
+          🎲 Girando...
+        </div>
+
+        <div class="plan-description">
+          A ver qué nos toca 👀
+        </div>
+      `;
+
+      setTimeout(() => {
+
+        selectedActivity =
+          activities[index];
+
+        document.getElementById("wheelResult").innerHTML = `
+          <div class="result-label">
+            🎲 La ruleta ha decidido...
+          </div>
+
+          <div class="plan-title">
+            ${escapeHtml(selectedActivity.nombre)}
+          </div>
+
+          <div class="plan-description">
+            ${escapeHtml(selectedActivity.descripcion)}
+          </div>
+        `;
+
+        acceptButton.style.display = "block";
+        spinButton.disabled = false;
+        spinning = false;
+
+      }, 4100);
+    }
+
+    function acceptSpin() {
+      if (!selectedActivity) return;
+
+      document.getElementById("date").value = "";
+      document.getElementById("time").value = "";
+      document.getElementById("extra").value = "";
+
+      updateTimeRestriction();
+
+      showScreen("s5");
+    }
+
+    function saveIdea() {
+      const input =
+        document.getElementById("idea");
+
+      const value =
+        input.value.trim();
+
+      if (!value) {
+        alert("Cuéntame qué quieres hacer 💗");
+        input.focus();
+        return;
+      }
+
+      selectedActivity = {
+        nombre: "✍️ " + value,
+        descripcion: "Idea propuesta por Carolina."
+      };
+
+      document.getElementById("date").value = "";
+      document.getElementById("time").value = "";
+      document.getElementById("extra").value = "";
+
+      updateTimeRestriction();
+
+      showScreen("s5");
+    }
+
+    function getTodayString() {
+      const now = new Date();
+
+      const year =
+        now.getFullYear();
+
+      const month =
+        String(now.getMonth() + 1)
+          .padStart(2, "0");
+
+      const day =
+        String(now.getDate())
+          .padStart(2, "0");
+
+      return `${year}-${month}-${day}`;
+    }
+
+    function getCurrentTimeString() {
+      const now = new Date();
+
+      const hours =
+        String(now.getHours())
+          .padStart(2, "0");
+
+      const minutes =
+        String(now.getMinutes())
+          .padStart(2, "0");
+
+      return `${hours}:${minutes}`;
+    }
+
+    function updateTimeRestriction() {
+      const dateInput =
+        document.getElementById("date");
+
+      const timeInput =
+        document.getElementById("time");
+
+      const hint =
+        document.getElementById("timeHint");
+
+      if (!dateInput || !timeInput) return;
+
+      const today =
+        getTodayString();
+
+      const selectedDate =
+        dateInput.value;
+
+      if (selectedDate === today) {
+
+        const minimumTime =
+          getCurrentTimeString();
+
+        timeInput.min =
+          minimumTime;
+
+        hint.textContent =
+          `Hoy solo puedes escoger una hora desde ${minimumTime} en adelante.`;
+
+        if (
+          timeInput.value &&
+          timeInput.value < minimumTime
+        ) {
+          timeInput.value = "";
+        }
+
+      } else {
+
+        timeInput.removeAttribute("min");
+
+        hint.textContent =
+          "Para una fecha futura puedes escoger cualquier hora.";
+      }
+    }
+
+    function setupDateTimeRestrictions() {
+      const dateInput =
+        document.getElementById("date");
+
+      const timeInput =
+        document.getElementById("time");
+
+      if (!dateInput || !timeInput) return;
+
+      dateInput.min =
+        getTodayString();
+
+      dateInput.addEventListener(
+        "change",
+        updateTimeRestriction
+      );
+
+      timeInput.addEventListener(
+        "change",
+        updateTimeRestriction
+      );
+
+      updateTimeRestriction();
+    }
+
+    function validateDateTime() {
+      const dateInput =
+        document.getElementById("date");
+
+      const timeInput =
+        document.getElementById("time");
+
+      const date =
+        dateInput.value;
+
+      const time =
+        timeInput.value;
+
+      const today =
+        getTodayString();
+
+      if (!date) {
+        alert("Escoge una fecha para la cita 💗");
+        dateInput.focus();
+        return false;
+      }
+
+      if (!time) {
+        alert("Escoge una hora para la cita 🕐");
+        timeInput.focus();
+        return false;
+      }
+
+      if (date < today) {
+        alert(
+          "Esa fecha ya pasó 😭 Escoge hoy o un día futuro."
+        );
+
+        dateInput.value = "";
+        dateInput.focus();
+
+        return false;
+      }
+
+      if (
+        date === today &&
+        time < getCurrentTimeString()
+      ) {
+        alert(
+          "Esa hora ya pasó 😭 Escoge una hora más adelante."
+        );
+
+        timeInput.value = "";
+        timeInput.focus();
+
+        return false;
+      }
+
+      return true;
+    }
+
+    function formatDate(dateString) {
+      const date =
+        new Date(`${dateString}T12:00:00`);
+
+      return date.toLocaleDateString(
+        "es-CO",
+        {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric"
+        }
+      );
+    }
+
+    function review() {
+      if (!selectedActivity) {
+        alert("Primero debemos escoger un plan 💗");
+        showScreen("s2");
+        return;
+      }
+
+      if (!validateDateTime()) {
+        return;
+      }
+
+      const date =
+        document.getElementById("date").value;
+
+      const time =
+        document.getElementById("time").value;
+
+      const extra =
+        document.getElementById("extra").value.trim();
+
+      document.getElementById(
+        "summaryActivity"
+      ).textContent =
+        `${selectedActivity.nombre} — ${selectedActivity.descripcion}`;
+
+      document.getElementById(
+        "summaryDate"
+      ).textContent =
+        formatDate(date);
+
+      document.getElementById(
+        "summaryTime"
+      ).textContent =
+        time;
+
+      document.getElementById(
+        "summaryExtra"
+      ).textContent =
+        extra || "Nada más por ahora 💗";
+
+      showScreen("s6");
+    }
+
+    async function sendResult() {
+
+      const button =
+        document.getElementById("sendButton");
+
+      button.disabled = true;
+      button.textContent =
+        "Enviando... 💌";
+
+      const date =
+        document.getElementById("date").value;
+
+      const time =
+        document.getElementById("time").value;
+
+      const extra =
+        document.getElementById("extra").value.trim();
+
+      const payload = {
+        respuesta: "Sí 💗",
+
+        actividad: {
+          nombre: selectedActivity.nombre,
+          descripcion: selectedActivity.descripcion
+        },
+
+        fecha: date,
+        hora: time,
+        mensaje: extra
+      };
+
+      try {
+
+        const response =
+          await fetch(
+            "/api/cita",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              body:
+                JSON.stringify(payload)
+            }
+          );
+
+        const data =
+          await response.json();
+
+        if (
+          !response.ok ||
+          !data.ok
+        ) {
+          throw new Error(
+            data.error ||
+            "No se pudo enviar la cita."
+          );
+        }
+
+        showScreen("s7");
+
+      } catch (error) {
+
+        console.error(error);
+
+        alert(
+          "Ups 😭 No pude enviar la cita. Inténtalo otra vez."
+        );
+
+        button.disabled = false;
+        button.textContent =
+          "Confirmar cita 💗";
+      }
+    }
+
+    function makeHearts() {
+      const container =
+        document.getElementById("hearts");
+
+      const symbols = [
+        "💗",
+        "💕",
+        "💖",
+        "♡",
+        "♥"
+      ];
+
+      for (let i = 0; i < 18; i++) {
+
+        const heart =
+          document.createElement("div");
+
+        heart.className =
+          "heart";
+
+        heart.textContent =
+          symbols[
+            Math.floor(
+              Math.random() *
+              symbols.length
+            )
+          ];
+
+        heart.style.left =
+          `${Math.random() * 100}%`;
+
+        heart.style.animationDuration =
+          `${8 + Math.random() * 10}s`;
+
+        heart.style.animationDelay =
+          `${Math.random() * 8}s`;
+
+        heart.style.fontSize =
+          `${14 + Math.random() * 16}px`;
+
+        container.appendChild(heart);
+      }
+    }
+
+    /*
+      Ocultamos la pantalla de carga cuando
+      todos los recursos de la página terminaron
+      de cargar.
+    */
+    window.addEventListener(
+      "load",
+      () => {
+
+        setTimeout(() => {
+
+          document
+            .getElementById("loadingScreen")
+            .classList.add("hidden");
+
+        }, 700);
+      }
+    );
+
+    buildWheel();
+    setupDateTimeRestrictions();
+    makeHearts();
+
+  </script>
+
+</body>
+</html>
